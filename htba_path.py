@@ -1,6 +1,6 @@
 # Please enter those for calculation.
-cubes = 60
-modules_per_tier = [11, 4, 5, 0, 0]
+cubes = 0
+modules_per_tier = [0, 0, 0, 0, 0]
 
 # standard values for initialisation.
 cashback = [10, 10, 20, 100, 200]
@@ -9,6 +9,41 @@ costs = [10, 50, 100, 500, 1000]
 true_costs = []
 # priority of tier-rank.
 internal_tier_values = [1, 2, 3, 4, 5]
+input_steps = [
+    'Please enter your balance of cubes:                            ',
+    'How many Tier 0 modules are required?                          ',
+    'How many Tier I modules are required?                          ',
+    'How many Tier II modules are required?                         ',
+    'How many Tier III modules are required?                        ',
+    'How many Tier IV modules are required?                         '
+]
+
+
+def get_inputs() -> None:
+    """
+    Enforces input restrictions and sets cubes and modules_per_tier.
+    """
+    # initialise variables.
+    round = 0
+    tmp = 0
+    # go through all required inputs.
+    while round < len(input_steps):
+        # enforce input restrictions.
+        while True:
+            try:
+                tmp = int(input(input_steps[round]))
+                if tmp < 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print('Please enter a non-negative integer.')
+        # set the values.
+        if round == 0:
+            global cubes
+            cubes = tmp
+        else:
+            modules_per_tier[round - 1] = tmp
+        round += 1
 
 def get_true_costs() -> None:
     """
@@ -82,7 +117,6 @@ def compress_path(module_path) -> str:
     # initialise with non-existent tier for start.
     last_tier = -1
     path_index = 0
-    print(module_path)
 
     while path_index < len(module_path):
         # check if start
@@ -96,7 +130,6 @@ def compress_path(module_path) -> str:
             path_string += int_to_tier_str(last_tier)
             # check if we still need to append modules.
             if path_index < len(module_path):
-                print(path_index)
                 path_string += ' => '
                 # reset variables.
                 last_tier = module_path[path_index]
@@ -227,4 +260,5 @@ def filter_remaining_modules(remaining_modules, remaining_cubes) -> tuple[list[i
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    get_inputs()
     perform_analysis()
