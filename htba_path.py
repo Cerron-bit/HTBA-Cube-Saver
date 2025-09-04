@@ -56,7 +56,61 @@ def get_dp_table(weights: list[int], values: list[int]) -> list[list[int]]:
                 dp_table[i][w] = dp_table[i - 1][w]
     return dp_table
 
-def get_paid_modules() -> tuple[list[int], list[int]]:
+def int_to_tier_str(last_tier: int) -> str:
+    """
+    Converts an integer into a string representation of its tier rank.
+    :param last_tier: the tier rank as integer.
+    :return: the string representation of the tier rank.
+    """
+    tier_str = "Tier "
+    if last_tier == 0:
+        tier_str += '0'
+    elif last_tier < 4:
+        tier_str += 'I' * last_tier
+    else:
+        tier_str += 'IV'
+    return tier_str
+
+def compress_path(module_path) -> str:
+    """
+    Compresses the path_list to a string.
+    :param module_path: the module path as list.
+    :return: the compressed path as string.
+    """
+    path_string = ''
+    module_counter = 0
+    # initialise with non-existent tier for start.
+    last_tier = -1
+    path_index = 0
+    print(module_path)
+
+    while path_index < len(module_path):
+        # check if start
+        if path_index == 0:
+            last_tier = module_path[path_index]
+            module_counter += 1
+        # check if tier-rank changed or end of list is reached.
+        elif module_path[path_index] != last_tier or path_index == len(module_path) - 1:
+            # add entry to path_string.
+            path_string += str(module_counter) + 'x '
+            path_string += int_to_tier_str(last_tier)
+            # check if we still need to append modules.
+            if path_index < len(module_path):
+                print(path_index)
+                path_string += ' => '
+                # reset variables.
+                last_tier = module_path[path_index]
+                module_counter = 1
+        else:
+            # update variables.
+            module_counter += 1
+        path_index += 1
+    # add the last entry to the path.
+    path_string += str(module_counter) + 'x '
+    path_string += int_to_tier_str(last_tier)
+    return path_string
+
+def get_paid_modules() -> tuple[list[int], str]:
     """
     Determine which modules can be covered by the current cube balance
     and plan the optimal path to do so.
@@ -85,7 +139,8 @@ def get_paid_modules() -> tuple[list[int], list[int]]:
             # update w for further traversal.
             w -= weights[i - 1]
     # reverse module_path to have it face from start to end.
-    return modules_included, list(reversed(module_path))
+    module_path = compress_path(list(reversed(module_path)))
+    return modules_included, module_path
 
 def calculate_savings(modules_included) -> tuple[int, int]:
     """
@@ -133,7 +188,7 @@ def perform_analysis() -> None:
     print('Current cube balance:                                    ' + str(cubes))
     print('Remaining cube balance:                                  ' + str(remaining_cubes))
     print('Modules financially covered by strategy:                 ' + str(paid_modules) + '/' + str(needed_modules))
-    print('Optimal path through modules in tier-ranks:\n -> ' + str(module_path))
+    print('Optimal path through modules in tier-ranks:\n => ' + str(module_path))
     print('Remaining modules by tier-ranks:                         ' + str(remaining_modules))
     print('Total cube costs:                                        ' + str(total_costs))
     print('Covered cube costs:                                      ' + str(savings))
