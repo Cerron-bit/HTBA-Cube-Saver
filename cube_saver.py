@@ -106,6 +106,19 @@ def int_to_tier_str(last_tier: int) -> str:
         tier_str += 'IV'
     return tier_str
 
+def aggregate_tier_str(counter, tier) -> str:
+    """
+    Aggregates the number of modules of one tier into a compact
+    string representation.
+    :param counter: the number of modules of one tier.
+    :param tier: the tier rank.
+    :return: the string representation.
+    """
+    string = ''
+    string += str(counter) + 'x '
+    string += int_to_tier_str(tier)
+    return string
+
 def compress_path(module_path) -> str:
     """
     Compresses the path_list to a string.
@@ -113,34 +126,40 @@ def compress_path(module_path) -> str:
     :return: the compressed path as string.
     """
     path_string = ''
-    module_counter = 0
+    module_counter = 1
     # initialise with non-existent tier for start.
     last_tier = -1
     path_index = 0
 
     while path_index < len(module_path):
-        # check if start
+        # check if this is the first entry.
         if path_index == 0:
             last_tier = module_path[path_index]
-            module_counter += 1
-        # check if tier-rank changed or end of list is reached.
-        elif module_path[path_index] != last_tier or path_index == len(module_path) - 1:
-            # add entry to path_string.
-            path_string += str(module_counter) + 'x '
-            path_string += int_to_tier_str(last_tier)
-            # check if we still need to append modules.
-            if path_index < len(module_path):
+        # Check if this is the last entry.
+        elif path_index == len(module_path) - 1:
+            if path_string != '':
                 path_string += ' => '
+            if module_path[path_index] == last_tier:
+                module_counter += 1
+                path_string += aggregate_tier_str(module_counter, last_tier)
+            else:
+                # add second to last entry first.
+                path_string += aggregate_tier_str(module_counter, last_tier)
+                path_string += ' => '
+                path_string += aggregate_tier_str(1, module_path[path_index])
+        # If this entry is somewhere in the middle.
+        else:
+            if module_path[path_index] == last_tier:
+                module_counter += 1
+            else:
+                if path_string != '':
+                    path_string += ' => '
+                path_string += aggregate_tier_str(module_counter, last_tier)
                 # reset variables.
                 last_tier = module_path[path_index]
                 module_counter = 1
-        else:
-            # update variables.
-            module_counter += 1
+        # update loop variable.
         path_index += 1
-    # add the last entry to the path.
-    path_string += str(module_counter) + 'x '
-    path_string += int_to_tier_str(last_tier)
     return path_string
 
 def get_paid_modules() -> tuple[list[int], str]:
